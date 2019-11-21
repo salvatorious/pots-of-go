@@ -13,9 +13,11 @@ func main() {
 	cases := readInput()
 
 	for _, tCase := range cases {
-		fmt.Println("Simple: ", simpleSolve(tCase))
-		fmt.Println("Smarter: ", optimalSolve(tCase, len(tCase)-1))
-		fmt.Println("-------------------")
+		if len(tCase) > 1 {
+			fmt.Println("Simple: ", simpleSolve(tCase))
+			fmt.Println("Optimal: ", optimalSolve(tCase, len(tCase)-1))
+			fmt.Println("-------------------")
+		}
 	}
 }
 
@@ -43,22 +45,6 @@ func readInput() [][]int {
 
 	return testCases
 }
-
-// func greedyPick(set []int) []int {
-// 	left := set[0]
-// 	lAdj := set[1]
-// 	right := set[len(set)-1]
-// 	rAdj := set[len(set)-2]
-// 	var newSet []int
-
-// 	if (left + min(right, lAdj)) > (right + min(left, rAdj)) {
-// 		newSet = set[1:]
-// 	} else {
-// 		newSet = set[:len(set)-1]
-// 	}
-
-// 	return newSet
-// }
 
 type solution struct {
 	firstPlayerGold  int
@@ -95,28 +81,45 @@ func simpleSolve(set []int) solution {
 	}
 }
 
-// memo := [][]int
+// var memo [][]int
 
-func optimalSolve(set []int, i int, j int) solution {
-	left := set[0]
-	right := set[len(set)-1]
+func optimalSolve(set []int, n int) solution {
+	// fmt.Println("value of n is: ", n)
+	// fmt.Println("--")
 
 	var pick = 0
 	var newSet []int
 	var remainderSolution solution
 
-	// lAdj := set[1]
-	// rAdj := set[len(set)-2]
-
-	if (left + min(right, lAdj)) > (right + min(left, rAdj)) {
-		newSet = set[1:]
+	if set[0] == set[n] {
 		pick = set[0]
+		newSet = set[1:]
+	} else if set[0] == n+1 {
+		pick = max(set[0], set[n])
+
+		if set[0] > set[n] {
+			newSet = set[1:]
+		} else {
+			newSet = set[:n]
+		}
 	} else {
-		newSet = set[:len(set)-1]
-		pick = set[len(set)-1]
+		if (set[0] + min(set[n], set[1])) > (set[n] + min(set[0], set[n-1])) {
+			pick = set[0]
+			newSet = set[1:]
+		} else {
+			pick = set[n]
+			newSet = set[:n]
+		}
 	}
 
-	remainderSolution = optimalSolve(newSet)
+	if len(set) == 1 { // the last pick
+		remainderSolution = solution{
+			firstPlayerGold:  0,
+			secondPlayerGold: 0,
+		}
+	} else {
+		remainderSolution = optimalSolve(newSet, len(newSet)-1)
+	}
 
 	return solution{
 		firstPlayerGold:  pick + remainderSolution.secondPlayerGold,
